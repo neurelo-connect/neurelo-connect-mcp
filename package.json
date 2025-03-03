@@ -1,0 +1,38 @@
+{
+  "name": "@neurelo/connect-mcp",
+  "version": "0.0.1",
+  "description": "Neurelo MCP server",
+  "type": "module",
+  "bin": {
+    "neurelo-connect-mcp": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c --watch",
+    "codegen": "npx openapi-generator generate -g typescript-axios -i openapi/connect-server.openapi.yaml -o ./src/openapi",
+    "lint": "biome check",
+    "lint:fix": "biome check --write --unsafe",
+    "inspect": "mcp-inspector ./dist/main.js"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@modelcontextprotocol/inspector": "^0.4.0",
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/node": "^18.19.75",
+    "concurrently": "^9.1.2",
+    "rollup": "^4.34.6",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.4.1",
+    "axios": "^1.7.9",
+    "commander": "^13.1.0",
+    "zod": "^3.24.1"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "ignore": ["node_modules", "src/openapi", "dist"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "all": true,
+      "a11y": {
+        "all": true
+      },
+      "complexity": {
+        "all": true,
+        "useLiteralKeys": "off"
+      },
+      "correctness": {
+        "all": true,
+        "noNodejsModules": "off",
+        "noUndeclaredDependencies": "off",
+        "useImportExtensions": "off"
+      },
+      "performance": {
+        "all": true
+      },
+      "security": {
+        "all": true
+      },
+      "style": {
+        "all": true,
+        "noDefaultExport": "off",
+        "noNamespaceImport": "off",
+        "useFilenamingConvention": {
+          "level": "warn",
+          "options": {
+            "filenameCases": ["kebab-case"]
+          }
+        },
+        "useNamingConvention": {
+          "level": "warn",
+          "options": {
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "objectLiteralProperty",
+                  "scope": "any"
+                },
+                "formats": ["PascalCase", "camelCase", "CONSTANT_CASE"]
+              },
+              {
+                "selector": {
+                  "kind": "typeProperty",
+                  "scope": "any"
+                },
+                "formats": ["PascalCase", "camelCase", "CONSTANT_CASE"]
+              }
+            ]
+          }
+        }
+      },
+      "suspicious": {
+        "all": true,
+        "noReactSpecificProps": "off"
+      }
+    }
+  }
+}

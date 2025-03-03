@@ -1,0 +1,9 @@
+*.tsbuildinfo
+.env
+.next/
+.pnpm/
+NOTES.md
+dist/
+node_modules/
+out/
+coverage/

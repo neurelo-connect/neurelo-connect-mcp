@@ -1,0 +1,408 @@
+openapi: 3.0.0
+info:
+  title: Connect API
+  version: 0.1.0
+  description: API for Neurelo Connect
+paths:
+  /endpoints:
+    get:
+      operationId: getEndpoints
+      summary: Get metadata for all available endpoints
+      responses:
+        "200":
+          description: Endpoint metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EndpointMetadata"
+
+  /status:
+    get:
+      operationId: getStatus
+      summary: Check workflow service status
+      responses:
+        "200":
+          description: Workflow service is running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "500":
+          description: Workflow service is not running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+
+  /targets:
+    get:
+      operationId: getTargets
+      summary: List all available targets
+      responses:
+        "200":
+          description: List of targets
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Target"
+
+  /targets/{targetSlug}/db-status:
+    get:
+      operationId: getTargetDbStatus
+      summary: Check target database connection status
+      parameters:
+        - name: targetSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Target database is connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatus"
+        "404":
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "500":
+          description: Target database connection failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /targets/{targetSlug}/schema:
+    parameters:
+      - name: targetSlug
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getSchema
+      summary: Get the schema of the database. The specific format of the schema is database-specific.
+      responses:
+        "200":
+          description: Schema of the database
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "404":
+          description: Target not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "405":
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "500":
+          description: Failed to get schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /targets/{targetSlug}/readonly-query:
+    post:
+      operationId: executeReadonlyQuery
+      summary: Execute a readonly query on the specified target
+      parameters:
+        - name: targetSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Endpoint executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndpointResult"
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "405":
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "500":
+          description: Endpoint execution failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /targets/{targetSlug}/read-write-query:
+    post:
+      operationId: executeReadWriteQuery
+      summary: Execute a read/write query on the specified target
+      parameters:
+        - name: targetSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Endpoint executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndpointResult"
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "405":
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "500":
+          description: Endpoint execution failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+  /endpoints/{endpointPath}:
+    get:
+      operationId: executeEndpointOnGet
+      summary: Execute a workflow endpoint
+      parameters:
+        - name: endpointPath
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: params
+          in: query
+          required: false
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        "200":
+          description: Endpoint executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndpointResult"
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "405":
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "500":
+          description: Endpoint execution failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+    post:
+      operationId: executeEndpointOnPost
+      summary: Execute endpoint
+      parameters:
+        - name: endpointPath
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Endpoint executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndpointResult"
+        "404":
+          description: Endpoint not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "405":
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "500":
+          description: Endpoint execution failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    ServiceStatus:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+
+    ErrorMessage:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+
+    EndpointResult:
+      type: object
+      additionalProperties: true
+
+    QueryParameter:
+      type: object
+      additionalProperties: false
+      description: Description of a parameter for a query
+      required:
+        - description
+        - type
+        - optional
+        - list
+      properties:
+        description:
+          type: string
+          minLength: 1
+          description: A description of the parameter
+        type:
+          type: string
+          enum: [String, Int, Float, Boolean]
+          description: The type of the parameter
+        optional:
+          type: boolean
+          description: Whether the parameter is optional
+        list:
+          type: boolean
+          description: Whether the parameter accepts a list or a single value
+        default:
+          oneOf:
+            - type: string
+              description: A string value
+            - type: integer
+              format: int64
+              description: An integer value
+            - type: number
+              format: double
+              description: A number value
+            - type: boolean
+              description: A boolean value
+          description: The default value of the parameter, if not provided
+
+    EndpointMetadata:
+      type: object
+      required:
+        - description
+        - path
+        - requestMethod
+        - params
+      properties:
+        description:
+          type: string
+          minLength: 1
+          description: A description of the query
+        path:
+          type: string
+          minLength: 1
+          description: The endpoint to query (minus the base URL and `/endpoints/`)
+          example: dealership-cars
+        requestMethod:
+          type: string
+          minLength: 1
+          description: The HTTP method to use for the query
+          example: GET
+        params:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/QueryParameter"
+          description: The parameters to pass to the query
+
+    Target:
+      type: object
+      required:
+        - slug
+        - description
+        - engineType
+      properties:
+        slug:
+          type: string
+        description:
+          type: string
+        engineType:
+          description: The type of the target database
+          type: string
+          example: clickhouse
+
+security:
+  - bearerAuth: []

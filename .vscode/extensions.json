@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "editorconfig.editorconfig",
+    "pucelle.vscode-css-navigation",
+    "streetsidesoftware.code-spell-checker",
+    "vitest.explorer"
+  ]
+}
