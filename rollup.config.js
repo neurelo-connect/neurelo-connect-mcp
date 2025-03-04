@@ -14,7 +14,7 @@ const options = {
       inlineDynamicImports: true,
       format: "cjs",
       sourcemap: true,
-      banner: "#!/usr/bin/env node",
+      banner: "#!/usr/bin/env node --enable-source-maps",
     },
   ],
   plugins: [
