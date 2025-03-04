@@ -10,7 +10,7 @@ const options = {
   input: "src/main.ts",
   output: [
     {
-      file: "dist/main.js",
+      file: "dist/main.cjs",
       inlineDynamicImports: true,
       format: "cjs",
       sourcemap: true,

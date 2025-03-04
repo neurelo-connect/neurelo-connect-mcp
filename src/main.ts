@@ -4,7 +4,7 @@
  */
 
 import { stderr } from "node:process";
-import { Command } from "commander";
+import { Command, Option } from "commander";
 import { version } from "../package.json";
 import { startMcpServer } from "./mcp.js";
 
@@ -36,24 +36,63 @@ const program = new Command();
 program
   .name("neurelo-connect-mcp")
   .description("Neurelo Connect MCP server")
-  .version(version)
-  .hook("preAction", () => {
-    if (!(process.env["ENGINE_BASE_PATH"] && process.env["ENGINE_API_KEY"])) {
-      stderr.write("Error: ENGINE_BASE_PATH and ENGINE_API_KEY must be set\n");
-      process.exit(1);
-    }
+  .version(version);
+
+export type MCPOptions = {
+  name: string;
+  toolPrefix?: string;
+  testMode?: boolean;
+  engineBasePath?: string;
+  engineApiKey?: string;
+};
+
+program
+  .command("start")
+  .description("Start the MCP server")
+  .addOption(
+    new Option("--name <name>", "The name of the MCP server.")
+      .env("NEURELO_MCP_NAME")
+      .default("Neurelo Connect"),
+  )
+  .addOption(
+    new Option(
+      "--tool-prefix [prefix]",
+      "Prefix of the tool names. If not set, tools will not be namespaced.",
+    ).env("NEURELO_TOOL_PREFIX"),
+  )
+  .addOption(
+    (() => {
+      const option = new Option(
+        "--test-mode",
+        "Run the MCP server in test mode. This will not talk to a real engine, but will instead respond with mock data.",
+      );
+      option.hidden = true;
+      return option;
+    })(),
+  )
+  .addOption(
+    new Option("--engine-base-path <path>", "The base path of the engine.").env(
+      "ENGINE_BASE_PATH",
+    ),
+  )
+  .addOption(
+    new Option("--engine-api-key <key>", "The API key for the engine.").env(
+      "ENGINE_API_KEY",
+    ),
+  )
+  .hook("preAction", (thisCommand) => {
     checkNodeVersion();
+
+    // Only require engine options if not in test mode
+    const options = thisCommand.optsWithGlobals();
+    if (!options["testMode"]) {
+      if (!(options["engineBasePath"] && options["engineApiKey"])) {
+        throw new Error(
+          "--engine-base-path and --engine-api-key are required when not in test mode",
+        );
+      }
+    }
   })
-  .requiredOption(
-    "--name <name>",
-    "The name of the MCP server. Defaults to NEURELO_MCP_NAME environment variable if set.",
-    process.env["NEURELO_MCP_NAME"] ?? "Neurelo Connect",
-  )
-  .option(
-    "--tool-prefix [prefix]",
-    "Prefix of the tool names. Defaults to NEURELO_TOOL_PREFIX environment variable. If not set, tools will not be namespaced.",
-    process.env["NEURELO_TOOL_PREFIX"],
-  )
   .action(startMcpServer);
 
 program.parse();

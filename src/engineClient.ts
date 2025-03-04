@@ -53,23 +53,73 @@ function handleError(error: unknown): never {
   throw error;
 }
 
+export const testEngineClient: EngineClient = {
+  getEndpoints: async () => ({
+    data: [
+      {
+        description: "Test endpoint",
+        path: "test",
+        requestMethod: "GET",
+        params: {},
+      },
+    ],
+  }),
+  getTargets: async () => ({
+    data: [
+      {
+        slug: "test-clickhouse",
+        description: "Test ClickHouse database",
+        engineType: "clickhouse",
+      },
+      {
+        slug: "test-postgres",
+        description: "Test Postgres database",
+        engineType: "postgres",
+      },
+      {
+        slug: "test-db-down",
+        description: "Test database that is down",
+        engineType: "postgres",
+      },
+    ],
+  }),
+  getStatus: async () => ({
+    ok: true,
+  }),
+  getTargetDbStatus: async (targetSlug) => ({
+    ok: targetSlug !== "test-db-down",
+  }),
+  executeReadonlyQuery: async (target, query) => ({
+    target,
+    query,
+  }),
+  executeReadWriteQuery: async (target, query) => ({
+    target,
+    query,
+  }),
+  getSchema: async (target) => ({
+    target,
+    schema: {
+      columns: [{ name: "i", type: "UInt64" }],
+    },
+  }),
+  executeRequest: async (args) => ({
+    args,
+  }),
+};
 /**
- * Creates a configured engine client instance.
- * Requires ENGINE_BASE_PATH and ENGINE_API_KEY environment variables.
- *
  * @returns An initialized EngineClient instance
  * @throws Error if required environment variables are missing
  */
-export function createEngineClient(): EngineClient {
-  const basepath = process.env["ENGINE_BASE_PATH"];
-  if (!basepath) {
-    throw new Error("ENGINE_BASE_PATH is not set");
-  }
-
-  const apiKey = process.env["ENGINE_API_KEY"];
-  if (!apiKey) {
-    throw new Error("ENGINE_API_KEY is not set");
-  }
+export function createEngineClient({
+  engineBasePath,
+  engineApiKey,
+}: {
+  engineBasePath: string;
+  engineApiKey: string;
+}): EngineClient {
+  const basepath = engineBasePath;
+  const apiKey = engineApiKey;
 
   const headers = {
     Authorization: `Bearer ${apiKey}`,

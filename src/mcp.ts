@@ -8,8 +8,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { version } from "../package.json";
-import { type EngineClient, createEngineClient } from "./engineClient.js";
+import {
+  type EngineClient,
+  createEngineClient,
+  testEngineClient,
+} from "./engineClient.js";
 import type { EndpointMetadata } from "./openapi";
+import type { MCPOptions } from "./main.js";
 
 /**
  * Adds dynamic query tools to the MCP server based on endpoint metadata.
@@ -103,17 +108,27 @@ function addQueries({
 export async function startMcpServer({
   name,
   toolPrefix,
-}: {
-  name: string;
-  toolPrefix: string;
-}) {
+  testMode,
+  engineBasePath,
+  engineApiKey,
+}: MCPOptions) {
   // Create an MCP server
   const server = new McpServer({
     name,
     version,
   });
 
-  const engine = createEngineClient();
+  let engine: EngineClient;
+  if (testMode) {
+    engine = testEngineClient;
+  } else {
+    engine = createEngineClient({
+      // biome-ignore lint/style/noNonNullAssertion: The CLI parser ensures these are set if the testMode flag is not set
+      engineBasePath: engineBasePath!,
+      // biome-ignore lint/style/noNonNullAssertion: The CLI parser ensures these are set if the testMode flag is not set
+      engineApiKey: engineApiKey!,
+    });
+  }
   const endpoints = await engine.getEndpoints();
 
   // Register built-in tools
