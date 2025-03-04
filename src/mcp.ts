@@ -12,9 +12,9 @@ import {
   type EngineClient,
   createEngineClient,
   testEngineClient,
-} from "./engineClient.js";
-import type { EndpointMetadata } from "./openapi";
+} from "./engine-client.js";
 import type { MCPOptions } from "./main.js";
+import type { EndpointMetadata } from "./openapi";
 
 /**
  * Adds dynamic query tools to the MCP server based on endpoint metadata.

@@ -38,6 +38,10 @@ program
   .description("Neurelo Connect MCP server")
   .version(version);
 
+/**
+ * Options for the MCP server.
+ */
+// biome-ignore lint/style/useNamingConvention: MCP is an acronym
 export type MCPOptions = {
   name: string;
   toolPrefix?: string;
