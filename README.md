@@ -53,12 +53,18 @@ This lets you use Claude Desktop, or any MCP Client, to use natural language to 
 - `list_targets` - List all the available targets
 - `get_status` - Check if all database targets are running
 - `get_schema` - Get the schema for a given database target
-  - `target` (string): The name of the target database
-- `readonly_query` - Execute read-only SQL queries on your database
+  - Input:
+    - `target` (string): The name of the target database
+- `raw_readonly_query` - Execute read-only SQL queries on your database
+  - Queries are run with readonly access
   - Input:
     - `target` (string): The target database name
     - `query` (string): The SQL query to execute
-  - All queries are validated to ensure they are read-only for security
+- `raw_query` - Execute read/write SQL queries on your database
+  - Queries are allowed to modify data
+  - Input:
+    - `target` (string): The target database name
+    - `query` (string): The SQL query to execute
 - Dynamic endpoint tools - Additional tools are automatically generated based on your endpoint metadata
 
 # Development
