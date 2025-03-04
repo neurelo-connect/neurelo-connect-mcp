@@ -2,6 +2,7 @@
   "name": "@neurelo/connect-mcp",
   "version": "0.0.1",
   "description": "Neurelo MCP server",
+  "repository": "https://github.com/neurelo-connect/mcp-server",
   "type": "module",
   "bin": {
     "neurelo-connect-mcp": "./dist/main.js"
