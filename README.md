@@ -9,7 +9,9 @@ Model Context Protocol (MCP) is a [new, standardized protocol](https://modelcont
 This lets you use Claude Desktop, or any MCP Client, to use natural language to accomplish things with your databases, e.g.:
 
 ```
-- TODO: Add examples
+- "Show me the schema for my PostgreSQL database"
+- "How many users do I have?"
+- "Tell me how my databases are related to each other"
 ```
 
 # Claude Setup
