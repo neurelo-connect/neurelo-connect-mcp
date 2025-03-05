@@ -23,7 +23,7 @@ startCommand:
   commandFunction: |-
     (config) => ({
       "command": "node",
-      "args": ["--enable-source-maps", "/app/main.cjs"],
+      "args": ["--enable-source-maps", "/app/main.cjs", "start", "--dynamic-endpoint-tools"],
       "env": {
         "ENGINE_BASE_PATH": config.engineBasePath,
         "ENGINE_API_KEY": config.engineApiKey,

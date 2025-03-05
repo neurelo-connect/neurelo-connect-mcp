@@ -45,6 +45,7 @@ program
 export type MCPOptions = {
   name: string;
   toolPrefix?: string;
+  dynamicEndpointTools: boolean;
   testMode?: boolean;
   engineBasePath?: string;
   engineApiKey?: string;
@@ -63,6 +64,12 @@ program
       "--tool-prefix [prefix]",
       "Prefix of the tool names. If not set, tools will not be namespaced.",
     ).env("NEURELO_TOOL_PREFIX"),
+  )
+  .addOption(
+    new Option(
+      "--dynamic-endpoint-tools",
+      "Handle endpoints dynamically instead of adding them individually as tools.",
+    ).default(false),
   )
   .addOption(
     (() => {
@@ -98,6 +105,8 @@ program
       }
     }
   })
-  .action(startMcpServer);
+  .action((options) => {
+    startMcpServer(options);
+  });
 
 program.parse();

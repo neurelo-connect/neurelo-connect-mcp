@@ -115,6 +115,7 @@ function addQueries({
 export async function startMcpServer({
   name,
   toolPrefix,
+  dynamicEndpointTools,
   testMode,
   engineBasePath,
   engineApiKey,
@@ -136,7 +137,6 @@ export async function startMcpServer({
       engineApiKey: engineApiKey!,
     });
   }
-  const endpoints = await engine.getEndpoints();
 
   // Register built-in tools
   server.tool(
@@ -239,8 +239,59 @@ export async function startMcpServer({
     },
   );
 
-  // Add dynamic query tools based on endpoint metadata
-  addQueries({ server, engine, endpoints: endpoints.data, toolPrefix });
+  if (dynamicEndpointTools) {
+    // Add static query tools based on endpoint metadata
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}system_get_endpoints`,
+      "Get all available endpoints for stored queries and workflows",
+      {},
+      async () => {
+        const endpoints = await engine.getEndpoints();
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(endpoints.data),
+            },
+          ],
+        };
+      },
+    );
+
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}call_endpoint`,
+      "Call a given stored query/workflow endpoint with the provided parameters",
+      {
+        path: z.string(),
+        requestMethod: z.string(),
+        parameters: z.record(
+          z.string(),
+          z.union([z.string(), z.number(), z.boolean()]),
+        ),
+      },
+      async (args) => {
+        const result = await engine.executeRequest({
+          path: args.path,
+          requestMethod: args.requestMethod,
+          parameters: args.parameters,
+        });
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      },
+    );
+  } else {
+    // Add dynamic query tools based on endpoint metadata
+    const endpoints = await engine.getEndpoints();
+    addQueries({ server, engine, endpoints: endpoints.data, toolPrefix });
+  }
 
   // Start receiving messages on stdin and sending messages on stdout
   const transport = new StdioServerTransport();
