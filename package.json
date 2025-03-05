@@ -5,7 +5,7 @@
   "repository": "https://github.com/neurelo-connect/neurelo-connect-mcp",
   "type": "module",
   "bin": {
-    "neurelo-connect-mcp": "./dist/main.js"
+    "neurelo-connect-mcp": "./dist/main.cjs"
   },
   "scripts": {
     "build": "rollup -c",
