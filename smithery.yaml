@@ -6,6 +6,9 @@ build:
 startCommand:
   configSchema:
     type: object
+    required:
+      - engineBasePath
+      - engineApiKey
     properties:
       engineBasePath:
         type: string
