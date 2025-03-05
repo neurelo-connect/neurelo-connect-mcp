@@ -1,0 +1,28 @@
+# Smithery configuration file: https://smithery.ai/docs/deployments
+
+build:
+  dockerBuildPath: .
+
+startCommand:
+  configSchema:
+    type: object
+    required:
+      - engineBasePath
+      - engineApiKey
+    properties:
+      engineBasePath:
+        type: string
+        description: The base path of the Neurelo engine to connect to.
+      engineApiKey:
+        type: string
+        description: The API key to use for the Neurelo engine.
+  commandFunction: |-
+    (config) => ({
+      "command": "node",
+      "args": ["/app/main.cjs"],
+      "env": {
+        "ENGINE_BASE_PATH": config.engineBasePath,
+        "ENGINE_API_KEY": config.engineApiKey,
+      },
+    })
+  type: stdio
