@@ -44,6 +44,7 @@ This lets you use Claude Desktop, or any MCP Client, to use natural language to 
 
 - Node.js >= v18.0.0
 - Claude Desktop
+- A running Neurelo Connect instance
 - Neurelo Connect API key - you can generate one through the Neurelo Connect console.
 
 # Features
