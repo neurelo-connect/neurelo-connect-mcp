@@ -4,6 +4,7 @@ build:
   dockerBuildPath: .
 
 startCommand:
+  type: stdio
   configSchema:
     type: object
     required:
@@ -16,13 +17,16 @@ startCommand:
       engineApiKey:
         type: string
         description: The API key to use for the Neurelo engine.
+      toolPrefix:
+        type: string
+        description: The prefix to use for the tool names. If not set, tools will not be namespaced.
   commandFunction: |-
     (config) => ({
       "command": "node",
-      "args": ["/app/main.cjs"],
+      "args": ["--enable-source-maps", "/app/main.cjs"],
       "env": {
         "ENGINE_BASE_PATH": config.engineBasePath,
         "ENGINE_API_KEY": config.engineApiKey,
+        "NEURELO_TOOL_PREFIX": config.toolPrefix,
       },
     })
-  type: stdio
