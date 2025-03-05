@@ -91,9 +91,10 @@ program
     const options = thisCommand.optsWithGlobals();
     if (!options["testMode"]) {
       if (!(options["engineBasePath"] && options["engineApiKey"])) {
-        throw new Error(
-          "--engine-base-path and --engine-api-key are required when not in test mode",
+        stderr.write(
+          "--engine-base-path and --engine-api-key are required when not in test mode\n",
         );
+        process.exit(1);
       }
     }
   })

@@ -3,7 +3,7 @@
  * Provides a typed client for making API requests to execute workflows and queries.
  */
 
-import { AxiosError, type AxiosPromise } from "axios";
+import { AxiosError, type AxiosPromise, type AxiosResponse } from "axios";
 import { DefaultApiFactory } from "./openapi/api";
 import { Configuration } from "./openapi/configuration";
 type Json = JsonObject | JsonArray | string | number | boolean | null;
@@ -24,6 +24,28 @@ type SanitizedOpenapiClient = {
   >;
 };
 
+class EngineCallError extends Error {
+  public readonly status: number | undefined;
+  public readonly headers:
+    | AxiosResponse<unknown, unknown>["headers"]
+    | undefined;
+  public readonly error: JsonObject | undefined;
+
+  constructor(
+    method: string | undefined,
+    url: string | undefined,
+    status: number | undefined,
+    headers: AxiosResponse<unknown, unknown>["headers"] | undefined,
+    error: JsonObject | undefined,
+  ) {
+    super(`Error calling ${method} ${url}`);
+    this.name = "EngineCallError";
+    this.status = status;
+    this.headers = headers;
+    this.error = error;
+  }
+}
+
 /**
  * Extended client interface that adds executeRequest method
  * for unified endpoint execution
@@ -42,12 +64,12 @@ export type EngineClient = SanitizedOpenapiClient & {
 
 function handleError(error: unknown): never {
   if (error instanceof AxiosError) {
-    throw new Error(
-      `Error calling ${error.config?.method} ${error.config?.url}: ${JSON.stringify(
-        error.response?.data,
-        null,
-        2,
-      )}`,
+    throw new EngineCallError(
+      error.config?.method ?? "unknown",
+      error.config?.url ?? "unknown",
+      error.response?.status,
+      error.response?.headers,
+      error.response?.data ?? {},
     );
   }
   throw error;

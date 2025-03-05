@@ -16,6 +16,13 @@ import {
 import type { MCPOptions } from "./main.js";
 import type { EndpointMetadata } from "./openapi";
 
+class UnknownParameterType extends Error {
+  constructor(parameterType: string) {
+    super(`Unknown parameter type: ${parameterType}`);
+    this.name = "UnknownParameterType";
+  }
+}
+
 /**
  * Adds dynamic query tools to the MCP server based on endpoint metadata.
  * Each endpoint is converted into a tool with appropriate parameter validation.
@@ -55,7 +62,7 @@ function addQueries({
             schema = z.boolean();
             break;
           default:
-            throw new Error(`Unknown parameter type: ${param.type}`);
+            throw new UnknownParameterType(param.type);
         }
         // Handle array parameters
         if (param.list) {
