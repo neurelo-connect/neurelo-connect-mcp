@@ -14,7 +14,8 @@
     "codegen": "npx openapi-generator generate -g typescript-axios -i openapi/connect-server.openapi.yaml -o ./src/openapi",
     "lint": "biome check",
     "lint:fix": "biome check --write --unsafe",
-    "inspect": "mcp-inspector ./dist/main.cjs start"
+    "inspect": "mcp-inspector ./dist/main.cjs start",
+    "publish": "npm run build && npm version prerelease && npm publish --access public"
   },
   "keywords": [],
   "devDependencies": {
