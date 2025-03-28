@@ -22,6 +22,12 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/EndpointMetadata"
+        "500":
+          description: Failed to get endpoints
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
 
   /status:
     get:
@@ -235,6 +241,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EndpointResult"
+        "400":
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
         "404":
           description: Endpoint not found
           content:
@@ -276,6 +288,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EndpointResult"
+        "400":
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
         "404":
           description: Endpoint not found
           content:
@@ -338,7 +356,7 @@ components:
           description: A description of the parameter
         type:
           type: string
-          enum: [String, Int, Float, Boolean]
+          enum: [String, Int, Float, Boolean, Json, RowSet]
           description: The type of the parameter
         optional:
           type: boolean
@@ -358,6 +376,8 @@ components:
               description: A number value
             - type: boolean
               description: A boolean value
+            - type: object
+              description: A json object value with string keys
           description: The default value of the parameter, if not provided
 
     EndpointMetadata:

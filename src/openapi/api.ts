@@ -135,7 +135,9 @@ export const QueryParameterTypeEnum = {
     String: 'String',
     Int: 'Int',
     Float: 'Float',
-    Boolean: 'Boolean'
+    Boolean: 'Boolean',
+    Json: 'Json',
+    RowSet: 'RowSet'
 } as const;
 
 export type QueryParameterTypeEnum = typeof QueryParameterTypeEnum[keyof typeof QueryParameterTypeEnum];
@@ -145,7 +147,7 @@ export type QueryParameterTypeEnum = typeof QueryParameterTypeEnum[keyof typeof 
  * The default value of the parameter, if not provided
  * @export
  */
-export type QueryParameterDefault = boolean | number | string;
+export type QueryParameterDefault = boolean | number | object | string;
 
 /**
  * 

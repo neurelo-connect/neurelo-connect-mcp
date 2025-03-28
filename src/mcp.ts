@@ -14,7 +14,7 @@ import {
   testEngineClient,
 } from "./engine-client.js";
 import type { MCPOptions } from "./main.js";
-import type { EndpointMetadata } from "./openapi";
+import { type EndpointMetadata, QueryParameterTypeEnum } from "./openapi";
 
 class UnknownParameterType extends Error {
   constructor(parameterType: string) {
@@ -49,18 +49,36 @@ function addQueries({
       ([name, param]) => {
         let schema: z.ZodSchema;
         switch (param.type) {
-          case "String":
+          case QueryParameterTypeEnum.String:
             schema = z.string();
             break;
-          case "Int":
+          case QueryParameterTypeEnum.Int:
             schema = z.number().int();
             break;
-          case "Float":
+          case QueryParameterTypeEnum.Float:
             schema = z.number();
             break;
-          case "Boolean":
+          case QueryParameterTypeEnum.Boolean:
             schema = z.boolean();
             break;
+          case QueryParameterTypeEnum.Json:
+            schema = z.record(z.string(), z.any());
+            break;
+          case QueryParameterTypeEnum.RowSet: {
+            const rowSchema = z.record(z.string(), z.any());
+            const columnMetaSchema = z.object({
+              type: z.enum(["STRING", "INT", "FLOAT", "BOOLEAN", "JSON"]),
+            });
+            const metaSchema = z.object({
+              columns: z.record(z.string(), columnMetaSchema),
+              rowCount: z.number().int().positive(),
+            });
+            schema = z.object({
+              meta: metaSchema,
+              data: z.array(rowSchema),
+            });
+            break;
+          }
           default:
             throw new UnknownParameterType(param.type);
         }
