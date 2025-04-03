@@ -4,6 +4,24 @@ info:
   version: 0.1.0
   description: API for Neurelo Connect
 paths:
+  /server-info:
+    get:
+      operationId: getServerInfo
+      summary: Get server info
+      responses:
+        "200":
+          description: Server info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerInfo"
+        "500":
+          description: Failed to get server info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+
   /endpoints:
     get:
       operationId: getEndpoints
@@ -82,15 +100,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ServiceStatus"
+                $ref: "#/components/schemas/TargetStatus"
         "404":
           description: Target not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessage"
-        "500":
-          description: Target database connection failed
           content:
             application/json:
               schema:
@@ -347,6 +359,7 @@ components:
       required:
         - description
         - type
+        - schema
         - optional
         - list
       properties:
@@ -354,30 +367,14 @@ components:
           type: string
           minLength: 1
           description: A description of the parameter
-        type:
-          type: string
-          enum: [String, Int, Float, Boolean, Json, RowSet]
-          description: The type of the parameter
+        schema:
+          type: object
+          description: JSON schema for the parameter
+          additionalProperties: true
         optional:
           type: boolean
           description: Whether the parameter is optional
-        list:
-          type: boolean
-          description: Whether the parameter accepts a list or a single value
         default:
-          oneOf:
-            - type: string
-              description: A string value
-            - type: integer
-              format: int64
-              description: An integer value
-            - type: number
-              format: double
-              description: A number value
-            - type: boolean
-              description: A boolean value
-            - type: object
-              description: A json object value with string keys
           description: The default value of the parameter, if not provided
 
     EndpointMetadata:
@@ -414,15 +411,54 @@ components:
         - slug
         - description
         - engineType
+        - allowsRawReadonlyQuery
+        - allowsRawReadWriteQuery
       properties:
         slug:
           type: string
         description:
           type: string
         engineType:
-          description: The type of the target database
           type: string
-          example: clickhouse
+          description: The type of the target database
+          example: PostgreSQL
+        allowsRawReadonlyQuery:
+          type: boolean
+          description: Whether the target allows raw readonly queries
+        allowsRawReadWriteQuery:
+          type: boolean
+          description: Whether the target allows raw read/write queries
+
+    TargetStatus:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [connected, disconnected]
+        engineVersionString:
+          type: string
+          description: The version of the target database. Will be empty if the target is not connected.
+          example: PostgreSQL 15.3
+
+    ServerInfo:
+      type: object
+      additionalProperties: false
+      required:
+        - endpoints
+        - targets
+      properties:
+        endpoints:
+          description: List of all available endpoints that the server supports
+          type: array
+          items:
+            $ref: "#/components/schemas/EndpointMetadata"
+        targets:
+          description: List of all available targets that the server supports
+          type: array
+          items:
+            $ref: "#/components/schemas/Target"
 
 security:
   - bearerAuth: []

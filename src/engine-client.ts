@@ -92,24 +92,34 @@ export const testEngineClient: EngineClient = {
         slug: "test-clickhouse",
         description: "Test ClickHouse database",
         engineType: "clickhouse",
+        allowsRawReadonlyQuery: true,
+        allowsRawReadWriteQuery: true,
       },
       {
         slug: "test-postgres",
         description: "Test Postgres database",
         engineType: "postgres",
+        allowsRawReadonlyQuery: true,
+        allowsRawReadWriteQuery: true,
       },
       {
         slug: "test-db-down",
         description: "Test database that is down",
         engineType: "postgres",
+        allowsRawReadonlyQuery: true,
+        allowsRawReadWriteQuery: true,
       },
     ],
+  }),
+  getServerInfo: async () => ({
+    endpoints: (await testEngineClient.getEndpoints()).data,
+    targets: (await testEngineClient.getTargets()).data,
   }),
   getStatus: async () => ({
     ok: true,
   }),
   getTargetDbStatus: async (targetSlug) => ({
-    ok: targetSlug !== "test-db-down",
+    status: targetSlug === "test-db-down" ? "disconnected" : "connected",
   }),
   executeReadonlyQuery: async (target, query) => ({
     target,
@@ -210,6 +220,11 @@ export function createEngineClient({
     getTargets: () =>
       base
         .getTargets()
+        .then((res) => res.data)
+        .catch(handleError),
+    getServerInfo: () =>
+      base
+        .getServerInfo()
         .then((res) => res.data)
         .catch(handleError),
   };

@@ -6,6 +6,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { type JsonSchema, jsonSchemaToZod } from "json-schema-to-zod";
 import { z } from "zod";
 import { version } from "../package.json";
 import {
@@ -14,13 +15,45 @@ import {
   testEngineClient,
 } from "./engine-client.js";
 import type { MCPOptions } from "./main.js";
-import { type EndpointMetadata, QueryParameterTypeEnum } from "./openapi";
+import type { EndpointMetadata } from "./openapi";
 
-class UnknownParameterType extends Error {
-  constructor(parameterType: string) {
-    super(`Unknown parameter type: ${parameterType}`);
-    this.name = "UnknownParameterType";
+// The json-schema-to-zod library outputs code that contains some TypeScript
+// annotations that are not valid JavaScript. We remove them here.
+const tsAnnotationRegex = /<z\.ZodError\[\]>/;
+
+export function getZodSchemaFromJsonSchema(
+  jsonSchema: JsonSchema,
+): z.ZodSchema {
+  let zodSchemaString: string;
+  try {
+    zodSchemaString = jsonSchemaToZod(jsonSchema, {
+      module: "none",
+      noImport: true,
+      type: false,
+    });
+  } catch (cause) {
+    const error = new Error(
+      `Failed to convert JSON schema to Zod schema: ${JSON.stringify(
+        jsonSchema,
+        null,
+        2,
+      )}`,
+    );
+    error.cause = cause;
+    error.name = "ZodSchemaConversionError";
+    // biome-ignore lint/suspicious/noExplicitAny: Setting a property on an error
+    (error as any).sourceSchema = jsonSchema;
+    throw error;
   }
+  const functionString = `return ${zodSchemaString.replace(
+    tsAnnotationRegex,
+    "",
+  )};`;
+  // NOTE: The json-schema-to-zod library only supports JavaScript code as output.
+  // Their documentation says to use `eval` to run the code, but that is generally
+  // discouraged. We use `new Function` instead as it does not have access to the
+  // current scope.
+  return new Function("z", functionString)(z);
 }
 
 /**
@@ -47,52 +80,16 @@ function addQueries({
     // Convert endpoint parameters to Zod schemas for validation
     const parameterEntries = Object.entries(endpoint.params).map(
       ([name, param]) => {
-        let schema: z.ZodSchema;
-        switch (param.type) {
-          case QueryParameterTypeEnum.String:
-            schema = z.string();
-            break;
-          case QueryParameterTypeEnum.Int:
-            schema = z.number().int();
-            break;
-          case QueryParameterTypeEnum.Float:
-            schema = z.number();
-            break;
-          case QueryParameterTypeEnum.Boolean:
-            schema = z.boolean();
-            break;
-          case QueryParameterTypeEnum.Json:
-            schema = z.record(z.string(), z.any());
-            break;
-          case QueryParameterTypeEnum.RowSet: {
-            const rowSchema = z.record(z.string(), z.any());
-            const columnMetaSchema = z.object({
-              type: z.enum(["STRING", "INT", "FLOAT", "BOOLEAN", "JSON"]),
-            });
-            const metaSchema = z.object({
-              columns: z.record(z.string(), columnMetaSchema),
-              rowCount: z.number().int().positive(),
-            });
-            schema = z.object({
-              meta: metaSchema,
-              data: z.array(rowSchema),
-            });
-            break;
-          }
-          default:
-            throw new UnknownParameterType(param.type);
+        if (!param.schema) {
+          throw new Error(
+            `No schema found for parameter ${name} in endpoint ${endpoint.path}`,
+          );
         }
-        // Handle array parameters
-        if (param.list) {
-          schema = z.array(schema);
-        }
-        // Handle optional parameters
+        let schema = getZodSchemaFromJsonSchema(param.schema);
         if (param.optional) {
-          schema = z.union([schema, z.literal(null)]).optional();
+          schema = schema.optional();
         }
-        if (param.description) {
-          schema = schema.describe(param.description);
-        }
+        schema = schema.describe(param.description);
         return [name, schema] as const;
       },
     );
@@ -158,7 +155,7 @@ export async function startMcpServer({
 
   // Register built-in tools
   server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_list_targets`,
+    `${toolPrefix ? `${toolPrefix}_` : ""}system_list_databases`,
     "List all the available databases",
     async () => {
       const targets = await engine.getTargets();
@@ -168,6 +165,26 @@ export async function startMcpServer({
             type: "text" as const,
             mimeType: "application/json",
             text: JSON.stringify(targets),
+          },
+        ],
+      };
+    },
+  );
+
+  server.tool(
+    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_status`,
+    "Get the status of a given database",
+    {
+      target: z.string(),
+    },
+    async (args) => {
+      const status = await engine.getTargetDbStatus(args.target);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            mimeType: "application/json",
+            text: JSON.stringify(status),
           },
         ],
       };
@@ -193,7 +210,7 @@ export async function startMcpServer({
   );
 
   server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_schema`,
+    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_schema`,
     "Get the schema for a given database",
     {
       target: z.string(),
@@ -214,7 +231,7 @@ export async function startMcpServer({
 
   server.tool(
     `${toolPrefix ? `${toolPrefix}_` : ""}raw_readonly_query`,
-    "Execute a raw query against a database with readonly access",
+    "Execute a raw query against a database with readonly access. Can only be called if the database allows raw readonly queries.",
     {
       target: z.string().describe("The database to query"),
       query: z.string().describe("The query to execute"),
@@ -235,7 +252,7 @@ export async function startMcpServer({
 
   server.tool(
     `${toolPrefix ? `${toolPrefix}_` : ""}raw_query`,
-    "Execute a raw query against a database with read/write access",
+    "Execute a raw query against a database with read/write access. Can only be called if the database allows raw read/write queries.",
     {
       target: z.string().describe("The database to query"),
       query: z.string().describe("The query to execute"),
