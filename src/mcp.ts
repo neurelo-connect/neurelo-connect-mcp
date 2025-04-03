@@ -41,6 +41,7 @@ export function getZodSchemaFromJsonSchema(
     );
     error.cause = cause;
     error.name = "ZodSchemaConversionError";
+    // biome-ignore lint/suspicious/noExplicitAny: Setting a property on an error
     (error as any).sourceSchema = jsonSchema;
     throw error;
   }

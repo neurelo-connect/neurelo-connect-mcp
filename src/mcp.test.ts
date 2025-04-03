@@ -102,6 +102,7 @@ describe("#getZodSchemaFromJsonSchema", () => {
       }
 
       expect(zodToJsonSchema(zodSchema)).toEqual({
+        // biome-ignore lint/style/useNamingConvention: external property name
         $schema: "http://json-schema.org/draft-07/schema#",
         ...(expected ?? jsonSchema),
       });
