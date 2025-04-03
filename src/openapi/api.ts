@@ -109,8 +109,15 @@ export interface QueryParameter {
      * The type of the parameter
      * @type {string}
      * @memberof QueryParameter
+     * @deprecated
      */
     'type': QueryParameterTypeEnum;
+    /**
+     * 
+     * @type {{ [key: string]: object; }}
+     * @memberof QueryParameter
+     */
+    'schema': { [key: string]: object; };
     /**
      * Whether the parameter is optional
      * @type {boolean}
@@ -152,6 +159,25 @@ export type QueryParameterDefault = boolean | number | object | string;
 /**
  * 
  * @export
+ * @interface ServerInfo
+ */
+export interface ServerInfo {
+    /**
+     * List of all available endpoints that the server supports
+     * @type {Array<EndpointMetadata>}
+     * @memberof ServerInfo
+     */
+    'endpoints': Array<EndpointMetadata>;
+    /**
+     * List of all available targets that the server supports
+     * @type {Array<Target>}
+     * @memberof ServerInfo
+     */
+    'targets': Array<Target>;
+}
+/**
+ * 
+ * @export
  * @interface ServiceStatus
  */
 export interface ServiceStatus {
@@ -186,7 +212,46 @@ export interface Target {
      * @memberof Target
      */
     'engineType': string;
+    /**
+     * Whether the target allows raw readonly queries
+     * @type {boolean}
+     * @memberof Target
+     */
+    'allowsRawReadonlyQuery': boolean;
+    /**
+     * Whether the target allows raw read/write queries
+     * @type {boolean}
+     * @memberof Target
+     */
+    'allowsRawReadWriteQuery': boolean;
 }
+/**
+ * 
+ * @export
+ * @interface TargetStatus
+ */
+export interface TargetStatus {
+    /**
+     * 
+     * @type {string}
+     * @memberof TargetStatus
+     */
+    'status': TargetStatusStatusEnum;
+    /**
+     * The version of the target database. Will be empty if the target is not connected.
+     * @type {string}
+     * @memberof TargetStatus
+     */
+    'engineVersionString'?: string;
+}
+
+export const TargetStatusStatusEnum = {
+    Connected: 'connected',
+    Disconnected: 'disconnected'
+} as const;
+
+export type TargetStatusStatusEnum = typeof TargetStatusStatusEnum[keyof typeof TargetStatusStatusEnum];
+
 
 /**
  * DefaultApi - axios parameter creator
@@ -439,6 +504,40 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Get server info
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerInfo: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/server-info`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Check workflow service status
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -636,6 +735,18 @@ export const DefaultApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Get server info
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getServerInfo(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerInfo>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getServerInfo(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['DefaultApi.getServerInfo']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Check workflow service status
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -653,7 +764,7 @@ export const DefaultApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getTargetDbStatus(targetSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServiceStatus>> {
+        async getTargetDbStatus(targetSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TargetStatus>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getTargetDbStatus(targetSlug, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['DefaultApi.getTargetDbStatus']?.[localVarOperationServerIndex]?.url;
@@ -746,6 +857,15 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
+         * @summary Get server info
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerInfo(options?: RawAxiosRequestConfig): AxiosPromise<ServerInfo> {
+            return localVarFp.getServerInfo(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Check workflow service status
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -760,7 +880,7 @@ export const DefaultApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTargetDbStatus(targetSlug: string, options?: RawAxiosRequestConfig): AxiosPromise<ServiceStatus> {
+        getTargetDbStatus(targetSlug: string, options?: RawAxiosRequestConfig): AxiosPromise<TargetStatus> {
             return localVarFp.getTargetDbStatus(targetSlug, options).then((request) => request(axios, basePath));
         },
         /**
@@ -855,6 +975,17 @@ export class DefaultApi extends BaseAPI {
      */
     public getSchema(targetSlug: string, options?: RawAxiosRequestConfig) {
         return DefaultApiFp(this.configuration).getSchema(targetSlug, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get server info
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DefaultApi
+     */
+    public getServerInfo(options?: RawAxiosRequestConfig) {
+        return DefaultApiFp(this.configuration).getServerInfo(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
