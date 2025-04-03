@@ -6,6 +6,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { type JsonSchema, jsonSchemaToZod } from "json-schema-to-zod";
 import { z } from "zod";
 import { version } from "../package.json";
 import {
@@ -15,7 +16,6 @@ import {
 } from "./engine-client.js";
 import type { MCPOptions } from "./main.js";
 import type { EndpointMetadata } from "./openapi";
-import { jsonSchemaToZod, type JsonSchema } from "json-schema-to-zod";
 
 // The json-schema-to-zod library outputs code that contains some TypeScript
 // annotations that are not valid JavaScript. We remove them here.

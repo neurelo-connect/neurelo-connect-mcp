@@ -1,7 +1,7 @@
-import { describe, test, expect, assert } from "vitest";
-import { getZodSchemaFromJsonSchema } from "./mcp.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import type { JsonSchema } from "json-schema-to-zod";
+import { assert, describe, expect, test } from "vitest";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { getZodSchemaFromJsonSchema } from "./mcp.js";
 
 describe("#getZodSchemaFromJsonSchema", () => {
   test.each([
