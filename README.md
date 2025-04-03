@@ -51,9 +51,9 @@ This lets you use Claude Desktop, or any MCP Client, to use natural language to 
 
 ## Supported Tools
 
-- `list_targets` - List all the available targets
-- `get_status` - Check if all database targets are running
-- `get_schema` - Get the schema for a given database target
+- `system_list_databases` - List all the available targets
+- `system_get_database_status` - Check if all database targets are running
+- `system_get_database_schema` - Get the schema for a given database target
   - Input:
     - `target` (string): The name of the target database
 - `raw_readonly_query` - Execute read-only SQL queries on your database

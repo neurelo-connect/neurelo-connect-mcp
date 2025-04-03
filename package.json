@@ -10,7 +10,7 @@
   "scripts": {
     "build": "rollup -c",
     "build:watch": "rollup -c --watch",
-    "start": "node dist/main.cjs start --",
+    "start": "node --enable-source-maps dist/main.cjs start --",
     "codegen": "npx openapi-generator generate -g typescript-axios -i openapi/connect-server.openapi.yaml -o ./src/openapi",
     "lint": "biome check",
     "lint:fix": "biome check --write --unsafe",

@@ -24,11 +24,26 @@ const tsAnnotationRegex = /<z\.ZodError\[\]>/;
 export function getZodSchemaFromJsonSchema(
   jsonSchema: JsonSchema,
 ): z.ZodSchema {
-  const zodSchemaString = jsonSchemaToZod(jsonSchema, {
-    module: "none",
-    noImport: true,
-    type: false,
-  });
+  let zodSchemaString: string;
+  try {
+    zodSchemaString = jsonSchemaToZod(jsonSchema, {
+      module: "none",
+      noImport: true,
+      type: false,
+    });
+  } catch (cause) {
+    const error = new Error(
+      `Failed to convert JSON schema to Zod schema: ${JSON.stringify(
+        jsonSchema,
+        null,
+        2,
+      )}`,
+    );
+    error.cause = cause;
+    error.name = "ZodSchemaConversionError";
+    (error as any).sourceSchema = jsonSchema;
+    throw error;
+  }
   const functionString = `return ${zodSchemaString.replace(
     tsAnnotationRegex,
     "",
@@ -64,6 +79,11 @@ function addQueries({
     // Convert endpoint parameters to Zod schemas for validation
     const parameterEntries = Object.entries(endpoint.params).map(
       ([name, param]) => {
+        if (!param.schema) {
+          throw new Error(
+            `No schema found for parameter ${name} in endpoint ${endpoint.path}`,
+          );
+        }
         const schema = getZodSchemaFromJsonSchema(param.schema);
         return [name, schema] as const;
       },
@@ -130,7 +150,7 @@ export async function startMcpServer({
 
   // Register built-in tools
   server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_list_targets`,
+    `${toolPrefix ? `${toolPrefix}_` : ""}system_list_databases`,
     "List all the available databases",
     async () => {
       const targets = await engine.getTargets();
@@ -140,6 +160,26 @@ export async function startMcpServer({
             type: "text" as const,
             mimeType: "application/json",
             text: JSON.stringify(targets),
+          },
+        ],
+      };
+    },
+  );
+
+  server.tool(
+    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_status`,
+    "Get the status of a given database",
+    {
+      target: z.string(),
+    },
+    async (args) => {
+      const status = await engine.getTargetDbStatus(args.target);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            mimeType: "application/json",
+            text: JSON.stringify(status),
           },
         ],
       };
@@ -165,7 +205,7 @@ export async function startMcpServer({
   );
 
   server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_schema`,
+    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_schema`,
     "Get the schema for a given database",
     {
       target: z.string(),
