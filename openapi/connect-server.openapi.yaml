@@ -367,36 +367,14 @@ components:
           type: string
           minLength: 1
           description: A description of the parameter
-        type:
-          deprecated: true
-          type: string
-          enum: [String, Int, Float, Boolean, Json, RowSet]
-          description: The type of the parameter
         schema:
           type: object
-          additionalProperties:
-            type: object
-            description: JSON schema for the parameter
+          description: JSON schema for the parameter
+          additionalProperties: true
         optional:
           type: boolean
           description: Whether the parameter is optional
-        list:
-          type: boolean
-          description: Whether the parameter accepts a list or a single value
         default:
-          oneOf:
-            - type: string
-              description: A string value
-            - type: integer
-              format: int64
-              description: An integer value
-            - type: number
-              format: double
-              description: A number value
-            - type: boolean
-              description: A boolean value
-            - type: object
-              description: A json object value with string keys
           description: The default value of the parameter, if not provided
 
     EndpointMetadata:

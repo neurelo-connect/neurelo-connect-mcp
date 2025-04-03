@@ -84,7 +84,11 @@ function addQueries({
             `No schema found for parameter ${name} in endpoint ${endpoint.path}`,
           );
         }
-        const schema = getZodSchemaFromJsonSchema(param.schema);
+        let schema = getZodSchemaFromJsonSchema(param.schema);
+        if (param.optional) {
+          schema = schema.optional();
+        }
+        schema = schema.describe(param.description);
         return [name, schema] as const;
       },
     );

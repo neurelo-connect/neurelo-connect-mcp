@@ -106,18 +106,11 @@ export interface QueryParameter {
      */
     'description': string;
     /**
-     * The type of the parameter
-     * @type {string}
-     * @memberof QueryParameter
-     * @deprecated
-     */
-    'type': QueryParameterTypeEnum;
-    /**
-     * 
-     * @type {{ [key: string]: object; }}
+     * JSON schema for the parameter
+     * @type {{ [key: string]: any; }}
      * @memberof QueryParameter
      */
-    'schema': { [key: string]: object; };
+    'schema': { [key: string]: any; };
     /**
      * Whether the parameter is optional
      * @type {boolean}
@@ -125,37 +118,12 @@ export interface QueryParameter {
      */
     'optional': boolean;
     /**
-     * Whether the parameter accepts a list or a single value
-     * @type {boolean}
+     * The default value of the parameter, if not provided
+     * @type {any}
      * @memberof QueryParameter
      */
-    'list': boolean;
-    /**
-     * 
-     * @type {QueryParameterDefault}
-     * @memberof QueryParameter
-     */
-    'default'?: QueryParameterDefault;
+    'default'?: any;
 }
-
-export const QueryParameterTypeEnum = {
-    String: 'String',
-    Int: 'Int',
-    Float: 'Float',
-    Boolean: 'Boolean',
-    Json: 'Json',
-    RowSet: 'RowSet'
-} as const;
-
-export type QueryParameterTypeEnum = typeof QueryParameterTypeEnum[keyof typeof QueryParameterTypeEnum];
-
-/**
- * @type QueryParameterDefault
- * The default value of the parameter, if not provided
- * @export
- */
-export type QueryParameterDefault = boolean | number | object | string;
-
 /**
  * 
  * @export
