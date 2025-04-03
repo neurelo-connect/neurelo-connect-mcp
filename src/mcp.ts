@@ -230,7 +230,7 @@ export async function startMcpServer({
 
   server.tool(
     `${toolPrefix ? `${toolPrefix}_` : ""}raw_readonly_query`,
-    "Execute a raw query against a database with readonly access",
+    "Execute a raw query against a database with readonly access. Can only be called if the database allows raw readonly queries.",
     {
       target: z.string().describe("The database to query"),
       query: z.string().describe("The query to execute"),
@@ -251,7 +251,7 @@ export async function startMcpServer({
 
   server.tool(
     `${toolPrefix ? `${toolPrefix}_` : ""}raw_query`,
-    "Execute a raw query against a database with read/write access",
+    "Execute a raw query against a database with read/write access. Can only be called if the database allows raw read/write queries.",
     {
       target: z.string().describe("The database to query"),
       query: z.string().describe("The query to execute"),
