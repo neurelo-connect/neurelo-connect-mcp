@@ -15,7 +15,7 @@
     "lint": "biome check",
     "lint:fix": "biome check --write --unsafe",
     "inspect": "mcp-inspector ./dist/main.cjs start",
-    "build:publish": "npm run build && npm version prerelease && npm publish --access public && git push",
+    "npm-publish": "npm run build && npm version prerelease && npm publish --access public && git push",
     "test": "vitest"
   },
   "keywords": [],
