@@ -65,16 +65,18 @@ export function getZodSchemaFromJsonSchema(
  * @param endpoints - Array of endpoint metadata defining available operations
  * @param toolPrefix - Prefix to add to all tool names for namespacing
  */
-function addQueries({
+function addEndpoints({
   server,
   engine,
   endpoints,
   toolPrefix,
+  disableTools,
 }: {
   server: McpServer;
   engine: EngineClient;
   endpoints: EndpointMetadata[];
   toolPrefix: string | undefined;
+  disableTools?: string[];
 }): void {
   for (const endpoint of endpoints) {
     // Convert endpoint parameters to Zod schemas for validation
@@ -95,27 +97,29 @@ function addQueries({
     );
 
     // Register the endpoint as a tool
-    server.tool(
-      `${toolPrefix ? `${toolPrefix}_` : ""}query_${endpoint.path}`,
-      `Stored Query${endpoint.description ? `: ${endpoint.description}` : ""}`,
-      Object.fromEntries(parameterEntries),
-      async (args: Record<string, string | number | boolean>) => {
-        const result = await engine.executeRequest({
-          path: endpoint.path,
-          requestMethod: endpoint.requestMethod,
-          parameters: args,
-        });
-        return {
-          content: [
-            {
-              type: "text" as const,
-              mimeType: "application/json",
-              text: JSON.stringify(result),
-            },
-          ],
-        };
-      },
-    );
+    if (!disableTools?.includes(`query_${endpoint.path}`)) {
+      server.tool(
+        `${toolPrefix ? `${toolPrefix}_` : ""}query_${endpoint.path}`,
+        `Defined Query${endpoint.description ? `: ${endpoint.description}` : ""}`,
+        Object.fromEntries(parameterEntries),
+        async (args: Record<string, string | number | boolean>) => {
+          const result = await engine.executeRequest({
+            path: endpoint.path,
+            requestMethod: endpoint.requestMethod,
+            parameters: args,
+          });
+          return {
+            content: [
+              {
+                type: "text" as const,
+                mimeType: "application/json",
+                text: JSON.stringify(result),
+              },
+            ],
+          };
+        },
+      );
+    }
   }
 }
 
@@ -135,8 +139,7 @@ export async function startMcpServer({
   testMode,
   engineBasePath,
   engineApiKey,
-  disableRawQueryTool,
-  disableRawReadonlyTool,
+  disableTools,
 }: MCPOptions) {
   // Create an MCP server
   const server = new McpServer({
@@ -157,82 +160,90 @@ export async function startMcpServer({
   }
 
   // Register built-in tools
-  server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_list_databases`,
-    "List all the available databases",
-    async () => {
-      const targets = await engine.getTargets();
-      return {
-        content: [
-          {
-            type: "text" as const,
-            mimeType: "application/json",
-            text: JSON.stringify(targets),
-          },
-        ],
-      };
-    },
-  );
+  if (!disableTools?.includes("system_list_databases")) {
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}system_list_databases`,
+      "List all the available databases",
+      async () => {
+        const targets = await engine.getTargets();
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(targets),
+            },
+          ],
+        };
+      },
+    );
+  }
 
-  server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_status`,
-    "Get the status of a given database",
-    {
-      target: z.string(),
-    },
-    async (args) => {
-      const status = await engine.getTargetDbStatus(args.target);
-      return {
-        content: [
-          {
-            type: "text" as const,
-            mimeType: "application/json",
-            text: JSON.stringify(status),
-          },
-        ],
-      };
-    },
-  );
+  if (!disableTools?.includes("system_get_database_status")) {
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_status`,
+      "Get the status of a given database",
+      {
+        target: z.string(),
+      },
+      async (args) => {
+        const status = await engine.getTargetDbStatus(args.target);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(status),
+            },
+          ],
+        };
+      },
+    );
+  }
 
-  server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_status`,
-    "Check if all databases are running",
-    {},
-    async () => {
-      const status = await engine.getStatus();
-      return {
-        content: [
-          {
-            type: "text" as const,
-            mimeType: "application/json",
-            text: JSON.stringify(status),
-          },
-        ],
-      };
-    },
-  );
+  if (!disableTools?.includes("system_get_status")) {
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}system_get_status`,
+      "Check if all databases are running",
+      {},
+      async () => {
+        const status = await engine.getStatus();
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(status),
+            },
+          ],
+        };
+      },
+    );
+  }
 
-  server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_schema`,
-    "Get the schema for a given database",
-    {
-      target: z.string(),
-    },
-    async (args) => {
-      const schema = await engine.getSchema(args.target);
-      return {
-        content: [
-          {
-            type: "text" as const,
-            mimeType: "application/json",
-            text: JSON.stringify(schema),
-          },
-        ],
-      };
-    },
-  );
+  if (!disableTools?.includes("system_get_database_schema")) {
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}system_get_database_schema`,
+      "Get the schema for a given database",
+      {
+        target: z.string(),
+      },
+      async (args) => {
+        const schema = await engine.getSchema(args.target);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(schema),
+            },
+          ],
+        };
+      },
+    );
+  }
 
-  if (!disableRawReadonlyTool) {
+  if (!disableTools?.includes("raw_readonly_query")) {
     server.tool(
       `${toolPrefix ? `${toolPrefix}_` : ""}raw_readonly_query`,
       "Execute a raw query against a database with readonly access. Can only be called if the database allows raw readonly queries.",
@@ -258,7 +269,7 @@ export async function startMcpServer({
     );
   }
 
-  if (!disableRawQueryTool) {
+  if (!disableTools?.includes("raw_query")) {
     server.tool(
       `${toolPrefix ? `${toolPrefix}_` : ""}raw_query`,
       "Execute a raw query against a database with read/write access. Can only be called if the database allows raw read/write queries.",
@@ -306,7 +317,7 @@ export async function startMcpServer({
 
     server.tool(
       `${toolPrefix ? `${toolPrefix}_` : ""}call_endpoint`,
-      "Call a given stored query/workflow endpoint with the provided parameters",
+      "Call a given stored query/playbook endpoint with the provided parameters",
       {
         path: z.string(),
         requestMethod: z.string(),
@@ -333,9 +344,15 @@ export async function startMcpServer({
       },
     );
   } else {
-    // Add dynamic query tools based on endpoint metadata
+    // Add dynamic endpoint tools based on endpoint metadata
     const endpoints = await engine.getEndpoints();
-    addQueries({ server, engine, endpoints: endpoints.data, toolPrefix });
+    addEndpoints({
+      server,
+      engine,
+      endpoints: endpoints.data,
+      toolPrefix,
+      disableTools,
+    });
   }
 
   // Start receiving messages on stdin and sending messages on stdout

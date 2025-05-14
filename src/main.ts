@@ -49,8 +49,7 @@ export type MCPOptions = {
   testMode?: boolean;
   engineBasePath?: string;
   engineApiKey?: string;
-  disableRawQueryTool?: boolean;
-  disableRawReadonlyTool?: boolean;
+  disableTools?: string[];
 };
 
 program
@@ -94,21 +93,16 @@ program
     ),
   )
   .addOption(
-    new Option("--disable-raw-query-tool", "Disable raw query tool.").default(
-      false,
-    ),
-  )
-  .addOption(
     new Option(
-      "--disable-raw-readonly-tool",
-      "Disable raw readonly tool.",
-    ).default(false),
+      "--disable-tools <tools>",
+      "The comma-separated list of tools to disable.",
+    ).default([]),
   )
   .hook("preAction", (thisCommand) => {
     checkNodeVersion();
+    const options = thisCommand.optsWithGlobals();
 
     // Only require engine options if not in test mode
-    const options = thisCommand.optsWithGlobals();
     if (!options["testMode"]) {
       if (!(options["engineBasePath"] && options["engineApiKey"])) {
         stderr.write(
@@ -116,6 +110,14 @@ program
         );
         process.exit(1);
       }
+    }
+
+    // Make sure the disable-tools option is an array if undefined
+    if (options["disableTools"] && !Array.isArray(options["disableTools"])) {
+      stderr.write(
+        "--disable-tools must be a comma-separated list of tool names\n",
+      );
+      process.exit(1);
     }
   })
   .action((options) => {
