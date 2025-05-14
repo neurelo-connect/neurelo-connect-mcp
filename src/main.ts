@@ -49,6 +49,7 @@ export type MCPOptions = {
   testMode?: boolean;
   engineBasePath?: string;
   engineApiKey?: string;
+  disableTools?: string[];
 };
 
 program
@@ -91,11 +92,17 @@ program
       "ENGINE_API_KEY",
     ),
   )
+  .addOption(
+    new Option(
+      "--disable-tools <tools>",
+      "The comma-separated list of tools to disable.",
+    ),
+  )
   .hook("preAction", (thisCommand) => {
     checkNodeVersion();
+    const options = thisCommand.optsWithGlobals();
 
     // Only require engine options if not in test mode
-    const options = thisCommand.optsWithGlobals();
     if (!options["testMode"]) {
       if (!(options["engineBasePath"] && options["engineApiKey"])) {
         stderr.write(
@@ -103,6 +110,14 @@ program
         );
         process.exit(1);
       }
+    }
+
+    // Make sure the disable-tools option is an array if it's a comma-separated list
+    if (
+      options["disableTools"] &&
+      typeof options["disableTools"] === "string"
+    ) {
+      options["disableTools"] = options["disableTools"].split(",");
     }
   })
   .action((options) => {

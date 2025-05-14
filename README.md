@@ -68,6 +68,10 @@ This lets you use Claude Desktop, or any MCP Client, to use natural language to 
     - `query` (string): The SQL query to execute
 - Dynamic endpoint tools - Additional tools are automatically generated based on your endpoint metadata
 
+## Configuration Options
+
+- `--disable-tools <tools>` - Comma-separated list of tool names to disable. For example: `--disable-tools raw_query,system_list_databases` will disable the raw query and database listing tools. You can also disable any defined queries by including their tool names in this list.
+
 # Development
 
 ## Development with the MCP inspector
@@ -93,7 +97,7 @@ Add the following to your Claude Desktop configuration file:
   "mcpServers": {
     "neurelo-connect": {
       "command": "npx",
-      "args": ["tsx", "REPOSITORY_ROOT/src/main.ts"],
+      "args": ["tsx", "REPOSITORY_ROOT/src/main.ts", "start"],
       "cwd": "REPOSITORY_ROOT",
       "env": {
         "ENGINE_API_KEY": "YOUR_ENGINE_API_KEY",
