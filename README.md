@@ -93,7 +93,7 @@ Add the following to your Claude Desktop configuration file:
   "mcpServers": {
     "neurelo-connect": {
       "command": "npx",
-      "args": ["tsx", "REPOSITORY_ROOT/src/main.ts"],
+      "args": ["tsx", "REPOSITORY_ROOT/src/main.ts", "start"],
       "cwd": "REPOSITORY_ROOT",
       "env": {
         "ENGINE_API_KEY": "YOUR_ENGINE_API_KEY",
