@@ -49,6 +49,8 @@ export type MCPOptions = {
   testMode?: boolean;
   engineBasePath?: string;
   engineApiKey?: string;
+  disableRawQueryTool?: boolean;
+  disableRawReadonlyTool?: boolean;
 };
 
 program
@@ -90,6 +92,17 @@ program
     new Option("--engine-api-key <key>", "The API key for the engine.").env(
       "ENGINE_API_KEY",
     ),
+  )
+  .addOption(
+    new Option("--disable-raw-query-tool", "Disable raw query tool.").default(
+      false,
+    ),
+  )
+  .addOption(
+    new Option(
+      "--disable-raw-readonly-tool",
+      "Disable raw readonly tool.",
+    ).default(false),
   )
   .hook("preAction", (thisCommand) => {
     checkNodeVersion();

@@ -127,6 +127,7 @@ function addQueries({
  * @param options.name - Name of the MCP server
  * @param options.toolPrefix - Prefix for all tool names
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This is a complex function
 export async function startMcpServer({
   name,
   toolPrefix,
@@ -134,6 +135,8 @@ export async function startMcpServer({
   testMode,
   engineBasePath,
   engineApiKey,
+  disableRawQueryTool,
+  disableRawReadonlyTool,
 }: MCPOptions) {
   // Create an MCP server
   const server = new McpServer({
@@ -229,50 +232,57 @@ export async function startMcpServer({
     },
   );
 
-  server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}raw_readonly_query`,
-    "Execute a raw query against a database with readonly access. Can only be called if the database allows raw readonly queries.",
-    {
-      target: z.string().describe("The database to query"),
-      query: z.string().describe("The query to execute"),
-    },
-    async (args) => {
-      const result = await engine.executeReadonlyQuery(args.target, args.query);
-      return {
-        content: [
-          {
-            type: "text" as const,
-            mimeType: "application/json",
-            text: JSON.stringify(result),
-          },
-        ],
-      };
-    },
-  );
+  if (!disableRawReadonlyTool) {
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}raw_readonly_query`,
+      "Execute a raw query against a database with readonly access. Can only be called if the database allows raw readonly queries.",
+      {
+        target: z.string().describe("The database to query"),
+        query: z.string().describe("The query to execute"),
+      },
+      async (args) => {
+        const result = await engine.executeReadonlyQuery(
+          args.target,
+          args.query,
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      },
+    );
+  }
 
-  server.tool(
-    `${toolPrefix ? `${toolPrefix}_` : ""}raw_query`,
-    "Execute a raw query against a database with read/write access. Can only be called if the database allows raw read/write queries.",
-    {
-      target: z.string().describe("The database to query"),
-      query: z.string().describe("The query to execute"),
-    },
-    async (args) => {
-      const result = await engine.executeReadWriteQuery(
-        args.target,
-        args.query,
-      );
-      return {
-        content: [
-          {
-            type: "text" as const,
-            mimeType: "application/json",
-            text: JSON.stringify(result),
-          },
-        ],
-      };
-    },
-  );
+  if (!disableRawQueryTool) {
+    server.tool(
+      `${toolPrefix ? `${toolPrefix}_` : ""}raw_query`,
+      "Execute a raw query against a database with read/write access. Can only be called if the database allows raw read/write queries.",
+      {
+        target: z.string().describe("The database to query"),
+        query: z.string().describe("The query to execute"),
+      },
+      async (args) => {
+        const result = await engine.executeReadWriteQuery(
+          args.target,
+          args.query,
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              mimeType: "application/json",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      },
+    );
+  }
 
   if (dynamicEndpointTools) {
     // Add static query tools based on endpoint metadata
