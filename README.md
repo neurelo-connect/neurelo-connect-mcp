@@ -68,6 +68,10 @@ This lets you use Claude Desktop, or any MCP Client, to use natural language to 
     - `query` (string): The SQL query to execute
 - Dynamic endpoint tools - Additional tools are automatically generated based on your endpoint metadata
 
+## Configuration Options
+
+- `--disable-tools <tools>` - Comma-separated list of tool names to disable. For example: `--disable-tools raw_query,system_list_databases` will disable the raw query and database listing tools. You can also disable any defined queries by including their tool names in this list.
+
 # Development
 
 ## Development with the MCP inspector
