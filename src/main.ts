@@ -96,7 +96,7 @@ program
     new Option(
       "--disable-tools <tools>",
       "The comma-separated list of tools to disable.",
-    ).default([]),
+    ),
   )
   .hook("preAction", (thisCommand) => {
     checkNodeVersion();
@@ -112,12 +112,12 @@ program
       }
     }
 
-    // Make sure the disable-tools option is an array if undefined
-    if (options["disableTools"] && !Array.isArray(options["disableTools"])) {
-      stderr.write(
-        "--disable-tools must be a comma-separated list of tool names\n",
-      );
-      process.exit(1);
+    // Make sure the disable-tools option is an array if it's a comma-separated list
+    if (
+      options["disableTools"] &&
+      typeof options["disableTools"] === "string"
+    ) {
+      options["disableTools"] = options["disableTools"].split(",");
     }
   })
   .action((options) => {
