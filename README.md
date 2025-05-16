@@ -30,7 +30,7 @@ This lets you use Claude Desktop, or any MCP Client, to use natural language to 
   "mcpServers": {
     "neurelo-connect": {
       "command": "npx",
-      "args": ["@neurelo/connect-mcp", "start"],
+      "args": ["@neurelo/connect-mcp@latest", "start"],
       "env": {
         "ENGINE_API_KEY": "YOUR_ENGINE_API_KEY",
         "ENGINE_BASE_PATH": "YOUR_ENGINE_BASE_PATH"
