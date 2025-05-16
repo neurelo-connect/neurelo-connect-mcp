@@ -5,7 +5,9 @@
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import express from "express";
 import { type JsonSchema, jsonSchemaToZod } from "json-schema-to-zod";
 import { z } from "zod";
 import { version } from "../package.json";
@@ -140,6 +142,7 @@ export async function startMcpServer({
   engineBasePath,
   engineApiKey,
   disableTools,
+  port,
 }: MCPOptions) {
   // Create an MCP server
   const server = new McpServer({
@@ -355,7 +358,43 @@ export async function startMcpServer({
     });
   }
 
-  // Start receiving messages on stdin and sending messages on stdout
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
+  if (port) {
+    const app = express();
+
+    const transports: { [sessionId: string]: SSEServerTransport } = {};
+
+    app.get("/sse", async (_, res) => {
+      const transport = new SSEServerTransport("/messages", res);
+      transports[transport.sessionId] = transport;
+
+      res.on("close", () => {
+        delete transports[transport.sessionId];
+      });
+
+      await server.connect(transport);
+    });
+
+    app.post("/messages", async (req, res) => {
+      const sessionId = req.query["sessionId"];
+
+      if (typeof sessionId !== "string") {
+        res.status(400).send({ messages: "Invalid sessionId." });
+        return;
+      }
+
+      const transport = transports[sessionId];
+
+      if (!transport) {
+        res.status(400).send({ messages: "Invalid sessionId." });
+        return;
+      }
+
+      await transport.handlePostMessage(req, res);
+    });
+
+    app.listen(Number.parseInt(port));
+  } else {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+  }
 }

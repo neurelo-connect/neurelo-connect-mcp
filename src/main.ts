@@ -50,6 +50,7 @@ export type MCPOptions = {
   engineBasePath?: string;
   engineApiKey?: string;
   disableTools?: string[];
+  port?: string;
 };
 
 program
@@ -97,6 +98,9 @@ program
       "--disable-tools <tools>",
       "The comma-separated list of tools to disable.",
     ),
+  )
+  .addOption(
+    new Option("--port <port>", "Use SSE for transport on the specified port"),
   )
   .hook("preAction", (thisCommand) => {
     checkNodeVersion();
