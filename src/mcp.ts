@@ -167,6 +167,7 @@ export async function startMcpServer({
     server.tool(
       `${toolPrefix ? `${toolPrefix}_` : ""}system_list_databases`,
       "List all the available databases",
+      {},
       async () => {
         const targets = await engine.getTargets();
         return {
