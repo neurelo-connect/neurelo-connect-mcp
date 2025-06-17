@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/neurelo-connect-neurelo-connect-mcp-badge.png)](https://mseep.ai/app/neurelo-connect-neurelo-connect-mcp)
+
 # Neurelo Connect MCP Server
 
 [![npm version](https://img.shields.io/npm/v/@neurelo/connect-mcp)](https://www.npmjs.com/package/@neurelo/connect-mcp)
